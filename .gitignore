@@ -73,3 +73,5 @@ config.toml
 !/docs/releases/
 /docs/releases/*
 !/docs/releases/*.md
+!/docs/zh-CN/
+!/docs/zh-CN/*.md

@@ -15,12 +15,17 @@ builds:
       - CGO_ENABLED=0
     goos:
       - linux
+      - freebsd
     goarch:
       - amd64
       - arm64
       - arm
     goarm:
       - "7"
+    ignore:
+      - goos: freebsd
+        goarch: arm
+        goarm: "7"
     tags:
       - poll_opt
       - gc_opt
@@ -41,6 +46,7 @@ archives:
     files:
       - LICENSE
       - README.md
+      - README.zh-CN.md
       - config.example.toml
 
 checksum:
@@ -59,28 +65,9 @@ changelog:
       - Merge pull request
       - Merge branch
 
-dockers_v2:
-  - images:
-      - "scratchnet/telego"
-    tags:
-      - "{{ .Tag }}"
-      - "v{{ .Major }}"
-      - "v{{ .Major }}.{{ .Minor }}"
-      - "latest"
-    platforms:
-      - linux/amd64
-      - linux/arm64
-      - linux/arm/v7
-    dockerfile: dist/Dockerfile
-    labels:
-      org.opencontainers.image.created: "{{ .Date }}"
-      org.opencontainers.image.title: "{{ .ProjectName }}"
-      org.opencontainers.image.revision: "{{ .FullCommit }}"
-      org.opencontainers.image.version: "{{ .Version }}"
-
 release:
   github:
-    owner: Scratch-net
+    owner: kmingee
     name: telego
   draft: false
   prerelease: auto
@@ -90,4 +77,4 @@ release:
 
     High-performance Telegram MTProxy with TLS fronting.
   footer: |
-    **Full Changelog**: https://github.com/Scratch-net/telego/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/kmingee/telego/compare/{{ .PreviousTag }}...{{ .Tag }}
