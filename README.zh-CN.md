@@ -154,6 +154,15 @@ make test-gnet   # 本地 gnet 补丁回归测试
 make test        # Linux 上完整测试入口
 ```
 
-CI 还会交叉编译 FreeBSD `amd64` / `arm64`，并编译与 FD 限额相关的测试程序。交叉编译不等于原生运行测试。Release 发布由 `v*` tag 触发，且需要 `docs/releases/<tag>.md` 对应的更新说明。
+CI 还会交叉编译 FreeBSD `amd64` / `arm64`，并编译与 FD 限额相关的测试程序。交叉编译不等于原生运行测试。
+
+### 手动发布 Release
+
+1. 打开仓库的 [Actions → Release](https://github.com/kmingee/telego/actions/workflows/release.yml)。
+2. 点击 **Run workflow**，分支选择 **main**，版本填写 `v0.8.8`，再点击绿色的 **Run workflow**。
+3. 工作流会检查版本及 `docs/releases/v0.8.8.md`、运行测试、创建对应 Git 标签，并通过 GoReleaser 发布 Linux/FreeBSD 压缩包及 `checksums.txt`。
+4. 等待任务成功，然后到 [Releases](https://github.com/kmingee/telego/releases) 下载。无需设置 Docker 或 Docker Hub 凭据。
+
+将来发布其他版本时，先在 `main` 添加 `docs/releases/<版本号>.md`，再填写相应的 `vX.Y.Z`。仍然可以通过手动推送 `v*` 标签自动触发同一个工作流。已有标签不会被覆盖；若标签指向其他提交，手动任务会报错终止。
 
 许可证：[Apache-2.0](LICENSE)。

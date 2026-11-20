@@ -4,18 +4,51 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag to release (e.g. v0.8.8); run from main'
+        required: true
+        type: string
+        default: 'v0.8.8'
 
 permissions:
   contents: write
+
+concurrency:
+  group: telego-release
+  cancel-in-progress: false
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
+
+      - name: Validate release request
+        env:
+          RUN_EVENT: ${{ github.event_name }}
+          RUN_REF: ${{ github.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RUN_EVENT" == workflow_dispatch && "$RUN_REF" != refs/heads/main ]]; then
+            echo '::error::Manual releases must be run from the main branch.'
+            exit 1
+          fi
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$ ]]; then
+            echo '::error::Version must be a tag such as v0.8.8 or v0.8.9-rc.1.'
+            exit 1
+          fi
+          if [[ ! -f "docs/releases/${RELEASE_TAG}.md" ]]; then
+            echo "::error::Missing release notes: docs/releases/${RELEASE_TAG}.md"
+            exit 1
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@v7.0.0
@@ -37,11 +70,33 @@ jobs:
       - name: Run 32-bit production-tag tests
         run: make test-32
 
+      # GITHUB_TOKEN tag pushes do not trigger another workflow run, so the
+      # manually dispatched run also publishes the release itself.
+      - name: Create or reuse release tag (manual run only)
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git show-ref --verify --quiet "refs/tags/${RELEASE_TAG}"; then
+            tag_commit="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+            if [[ "$tag_commit" != "$(git rev-parse HEAD)" ]]; then
+              echo "::error::Tag ${RELEASE_TAG} already points to ${tag_commit}; refusing to move it."
+              exit 1
+            fi
+            echo "Tag ${RELEASE_TAG} already points to this commit; reusing it."
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag -a "$RELEASE_TAG" -m "Release ${RELEASE_TAG}"
+            git push origin "refs/tags/${RELEASE_TAG}"
+          fi
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7.3.0
         with:
           distribution: goreleaser
           version: v2.20.1
-          args: release --clean -f dist/.goreleaser.yml --release-notes="docs/releases/${{ github.ref_name }}.md"
+          args: release --clean -f dist/.goreleaser.yml --release-notes="docs/releases/${{ env.RELEASE_TAG }}.md"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: ${{ env.RELEASE_TAG }}
