@@ -76,7 +76,7 @@ func (ln *listener) open() (err error) {
 
 func (ln *listener) close() {
 	ln.closeOnce.Do(func() {
-		if ln.fd > 0 {
+		if ln.fd >= 0 {
 			logging.Error(os.NewSyscallError("close", unix.Close(ln.fd)))
 		}
 		ln.fd = -1
@@ -126,8 +126,12 @@ func initListener(network, addr string, options *Options) (ln *listener, err err
 		sockOptStrs = append(sockOptStrs, sockOpt)
 	}
 
-	ln = &listener{network: network, address: addr, sockOptInts: sockOptInts, sockOptStrs: sockOptStrs}
+	ln = &listener{fd: -1, network: network, address: addr, sockOptInts: sockOptInts, sockOptStrs: sockOptStrs}
 	err = ln.open()
+	if err != nil {
+		// The socket constructor closes its own descriptor on failure.
+		return ln, err
+	}
 
 	if options.TCPKeepAlive > 0 && ln.network == "tcp" &&
 		(runtime.GOOS == "linux" || runtime.GOOS == "freebsd" || runtime.GOOS == "dragonfly") {
@@ -141,6 +145,11 @@ func initListener(network, addr string, options *Options) (ln *listener, err err
 			options.TCPKeepAlive,
 			options.TCPKeepInterval,
 			options.TCPKeepCount)
+		if err != nil {
+			// A listener whose post-bind options fail is not returned to an
+			// engine. Close it here or it leaks a descriptor and bound port.
+			ln.close()
+		}
 	}
 
 	return

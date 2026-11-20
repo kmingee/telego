@@ -48,7 +48,12 @@ Test-only changes restrict the default-poller example to its supported build and
 UDP proxy tests use ephemeral backend ports and clean up partial setup.
 Device-specific IPv6 tests skip only when the selected interface has no IPv6 address.
 
-The release targets are Linux amd64, arm64, and arm/v7.
+The release targets are Linux amd64, arm64, and arm/v7, plus FreeBSD amd64 and arm64.
+
+Listener initialization is atomic: if a later listener fails to bind, all
+previously opened sockets close before the caller returns. A failed TCP
+keepalive option also closes its already-bound listener. Both paths have
+portable Linux/FreeBSD regression coverage to prevent descriptor leaks.
 
 The optional Unix `ReadController` API pauses socket reads while output capacity is exhausted.
 The connection owner calls both methods. Pending writes remain active during a read pause.
@@ -75,6 +80,9 @@ It checks pending-connection recovery, resource-exhaustion backoff and recovery,
 `registration_shutdown_regression_test.go` checks accepted enrollment during owner shutdown through the upstream public APIs.
 The test fails on the recorded upstream revision and passes with this patch.
 
+`listener_cleanup_unix_test.go` covers a failed second bind and a failed
+post-bind keepalive setup. Both must leave the first port immediately reusable.
+
 The `owned_write_*_test.go` tests cover real partial socket writes, disposal, and reentrant release callbacks.
 The buffer tests cover mixed ordinary and owned output, partial consumption, and release on close.
 
@@ -85,7 +93,7 @@ The buffer tests cover mixed ordinary and owned output, partial consumption, and
 3. Reapply the local lifecycle and owned-buffer changes with their regression tests.
 4. Update the module requirements, replacements, and this provenance together.
 5. Run `make test` from the repository root.
-6. Build the Linux release targets with `poll_opt,gc_opt`.
+6. Build Linux and FreeBSD release targets with `poll_opt,gc_opt`.
 
 If upstream includes the required lifecycle and owned-buffer APIs, remove the local replacement in the same reviewed change.
 The upstream implementation must pass the local regression tests.

@@ -657,14 +657,28 @@ func createListeners(addrs []string, opts ...Option) ([]*listener, *Options, err
 	}
 
 	listeners := make([]*listener, len(addrs))
-	for i, a := range addrs {
-		proto, addr, err := parseProtoAddr(a)
-		if err != nil {
-			return nil, nil, err
+	var creationErr error
+	// Listener creation is all-or-nothing. On a later bind failure the Run /
+	// Rotate cleanup defer is never installed, so release earlier sockets here.
+	defer func() {
+		if creationErr != nil {
+			for _, ln := range listeners {
+				if ln != nil {
+					ln.close()
+				}
+			}
 		}
-		ln, err := initListener(proto, addr, options)
-		if err != nil {
-			return nil, nil, err
+	}()
+	for i, a := range addrs {
+		proto, addr, parseErr := parseProtoAddr(a)
+		if parseErr != nil {
+			creationErr = parseErr
+			return nil, nil, parseErr
+		}
+		ln, initErr := initListener(proto, addr, options)
+		if initErr != nil {
+			creationErr = initErr
+			return nil, nil, initErr
 		}
 		listeners[i] = ln
 	}

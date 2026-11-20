@@ -78,6 +78,32 @@ jobs:
       - name: Run local gnet patch regressions
         run: make test-gnet
 
+  freebsd-build:
+    name: FreeBSD cross-build (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Cross-compile FreeBSD release binary
+        env:
+          GOOS: freebsd
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: '0'
+        run: |
+          go build -trimpath -tags=poll_opt,gc_opt -o "$RUNNER_TEMP/telego-freebsd-${GOARCH}" ./cmd/telego
+          go test -c -tags=poll_opt,gc_opt -o "$RUNNER_TEMP/config-freebsd-${GOARCH}.test" ./pkg/config
+          go test -c -tags=poll_opt,gc_opt -o "$RUNNER_TEMP/telego-freebsd-${GOARCH}.test" ./cmd/telego
+          (cd third_party/gnet && go test -c -tags=poll_opt,gc_opt -o "$RUNNER_TEMP/gnet-freebsd-${GOARCH}.test" .)
+
   docker:
     name: Docker
     runs-on: ubuntu-latest

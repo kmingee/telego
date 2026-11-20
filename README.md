@@ -9,12 +9,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Scratch-net/telego/actions/workflows/test.yml"><img src="https://github.com/Scratch-net/telego/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests"></a>
-  <a href="https://github.com/Scratch-net/telego/actions/workflows/lint.yml"><img src="https://github.com/Scratch-net/telego/actions/workflows/lint.yml/badge.svg?branch=main" alt="Lint"></a>
+  <a href="https://github.com/kmingee/telego/actions/workflows/test.yml"><img src="https://github.com/kmingee/telego/actions/workflows/test.yml/badge.svg?branch=main" alt="Tests"></a>
+  <a href="https://github.com/kmingee/telego/actions/workflows/lint.yml"><img src="https://github.com/kmingee/telego/actions/workflows/lint.yml/badge.svg?branch=main" alt="Lint"></a>
   <a href="https://codecov.io/gh/Scratch-net/telego"><img src="https://codecov.io/gh/Scratch-net/telego/branch/main/graph/badge.svg" alt="Coverage"></a>
-  <a href="https://github.com/Scratch-net/telego/releases/latest"><img src="https://img.shields.io/github/v/release/Scratch-net/telego?color=blue&label=release" alt="Release"></a>
+  <a href="https://github.com/kmingee/telego/releases/latest"><img src="https://img.shields.io/github/v/release/kmingee/telego?color=blue&label=release" alt="Release"></a>
   <a href="https://pkg.go.dev/github.com/scratch-net/telego"><img src="https://pkg.go.dev/badge/github.com/scratch-net/telego.svg" alt="Go Reference"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Scratch-net/telego" alt="License"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/kmingee/telego" alt="License"></a>
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <b>English</b> | <a href="README.ru.md">Русский</a>
+  <b>English</b> | <a href="README.ru.md">Русский</a> | <a href="README.zh-CN.md">简体中文</a>
 </p>
 
 ---
@@ -47,7 +47,7 @@ Before installation, point a DNS hostname at the VPS.
 Make sure that Docker is available and public TCP ports 80 and 443 are free. Then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Scratch-net/telego/main/examples/gateway/install.sh \
+curl -fsSL https://raw.githubusercontent.com/kmingee/telego/main/examples/gateway/install.sh \
   | sh -s -- --domain proxy.example.com --email admin@example.com
 ```
 
@@ -116,14 +116,16 @@ Read the [managed gateway guide](examples/gateway/README.md) for updates, backup
 Source builds require Go 1.27.4 or later and the complete repository, including `third_party/gnet`.
 
 ```bash
-git clone https://github.com/Scratch-net/telego.git
+git clone https://github.com/kmingee/telego.git
 cd telego
 make build
 ```
 
 ### Pre-built Binaries
 
-Download from [Releases](https://github.com/Scratch-net/telego/releases/latest).
+Download from [Releases](https://github.com/kmingee/telego/releases/latest).
+
+This fork also publishes native FreeBSD `amd64` and `arm64` archives alongside Linux builds for new tags. See the [FreeBSD guide (简体中文)](docs/zh-CN/freebsd.md) for download, permissions, and file-descriptor limits. FreeBSD uses kqueue and does not use the Linux systemd installer.
 
 The local gnet replacement prevents installation with `go install …@version`.
 Use the source build or a pre-built binary instead.

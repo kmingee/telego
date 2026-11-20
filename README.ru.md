@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="README.md">English</a> •
+  <a href="README.zh-CN.md">简体中文</a> •
   <a href="#возможности">Возможности</a> •
   <a href="#быстрый-старт">Быстрый старт</a> •
   <a href="#конфигурация">Конфигурация</a> •
@@ -325,14 +326,14 @@ sudo systemctl enable --now telego-synlimit@443.service
 Для сборки нужны Go 1.27.4 или новее и полный репозиторий, включая `third_party/gnet`.
 
 ```bash
-git clone https://github.com/Scratch-net/telego.git
+git clone https://github.com/kmingee/telego.git
 cd telego
 make build
 ```
 
 ### Готовые бинарники
 
-Скачайте с [Releases](https://github.com/Scratch-net/telego/releases/latest).
+Скачайте с [Releases](https://github.com/kmingee/telego/releases/latest).
 
 Локальная замена gnet не позволяет установить Telego через `go install …@version`.
 Используйте сборку из исходников или готовый бинарник.
