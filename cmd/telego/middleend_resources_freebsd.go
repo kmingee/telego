@@ -9,5 +9,5 @@ func currentFileDescriptorLimit() (fileDescriptorLimit, error) {
 	if err := unix.Getrlimit(unix.RLIMIT_NOFILE, &limit); err != nil {
 		return fileDescriptorLimit{}, err
 	}
-	return fileDescriptorLimit{soft: limit.Cur, hard: limit.Max}, nil
+	return fileDescriptorLimit{soft: uint64(limit.Cur), hard: uint64(limit.Max)}, nil
 }

@@ -11,5 +11,6 @@ func currentFileDescriptorSoftLimit() (uint64, bool) {
 	if err := unix.Getrlimit(unix.RLIMIT_NOFILE, &limit); err != nil {
 		return 0, false
 	}
-	return limit.Cur, true
+	// x/sys/unix uses int64 for FreeBSD's Rlimit fields, unlike Linux.
+	return uint64(limit.Cur), true
 }
